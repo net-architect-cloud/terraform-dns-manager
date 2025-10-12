@@ -1,0 +1,51 @@
+name: DNS Infrastructure CI
+
+on:
+  pull_request:
+    paths:
+      - '**/*.tf'
+  push:
+    branches: [ main ]
+    paths:
+      - '**/*.tf'
+  schedule:
+    - cron: '17 3 * * *' # Daily drift check (plan only)
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    env:
+      TF_IN_AUTOMATION: "true"
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_EC2_METADATA_DISABLED: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.5
+
+      - name: Init
+        run: terraform init -upgrade
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Plan (PR & drift)
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: terraform plan -out=tfplan -var="cloudflare_api_token=$CLOUDFLARE_API_TOKEN"
+
+      - name: Upload plan (PR)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: tfplan
+
+      - name: Apply (main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve -var="cloudflare_api_token=$CLOUDFLARE_API_TOKEN"
