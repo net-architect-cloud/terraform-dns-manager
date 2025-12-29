@@ -11,21 +11,21 @@ terraform {
       version = "~> 2.0"
     }
     infomaniak = {
-      source  = "infomaniak/infomaniak"
-      version = "~> 2.0"
+      source  = "Infomaniak/infomaniak"
+      version = "1.3.6"
     }
   }
 
   # Backend Configuration - Local Storage (Default)
-  # For other backend options, see: ./backends/README.md
+  # Pour utiliser un autre backend, utilisez : terraform init -backend-config=backends/<nom>.hcl
   backend "local" {
     path = "./terraform.tfstate"
   }
 
-  # Alternative Backends (uncomment to use):
-  # backend "s3" { ... }               # Cloudflare R2
-  # backend "remote" { ... }           # Terraform Cloud
-  # backend "s3" { ... }               # AWS S3
-  # backend "azurerm" { ... }           # Azure Blob Storage
-  # backend "gcs" { ... }              # Google Cloud Storage
+  # Alternative Backends (utiliser avec -backend-config) :
+  # terraform init -backend-config=backends/ovh-backend.hcl      # OVH Object Storage
+  # terraform init -backend-config=backends/terraform-cloud.hcl   # Terraform Cloud
+  # terraform init -backend-config=backends/aws-s3.hcl           # AWS S3
+  # terraform init -backend-config=backends/azure-blob.hcl       # Azure Blob Storage
+  # terraform init -backend-config=backends/gcs.hcl              # Google Cloud Storage
 }

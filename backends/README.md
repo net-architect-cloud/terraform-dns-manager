@@ -1,53 +1,104 @@
 # Backend Options for Terraform State Storage
 
-This directory contains different backend configurations for storing Terraform state files.
+Ce dossier contient différentes configurations de backend pour stocker les fichiers d'état Terraform.
 
-## Available Backends
+## 🚀 Utilisation (Nouvelle méthode recommandée)
 
-### 1. **Cloudflare R2** (Default)
-- **File**: `../versions.tf` (current configuration)
-- **Use case**: Cost-effective, S3-compatible storage
-- **Features**: Encrypted storage, global CDN
+### Backend par défaut (Local)
+```bash
+terraform init
+```
 
-### 2. **Terraform Cloud** (HashiCorp Cloud)
-- **File**: `terraform-cloud.tf`
-- **Use case**: Managed service with collaboration features
-- **Features**: Remote operations, policy as code, audit logs
+### Changer de backend
+```bash
+# OVH Object Storage
+terraform init -backend-config=backends/ovh-backend.hcl
 
-### 3. **AWS S3**
-- **File**: `aws-s3.tf`
-- **Use case**: AWS ecosystem integration
-- **Features**: State locking with DynamoDB, versioning
+# Terraform Cloud
+terraform init -backend-config=backends/terraform-cloud.hcl
 
-### 4. **Azure Blob Storage**
-- **File**: `azure-blob.tf`
-- **Use case**: Azure ecosystem integration
-- **Features**: Soft delete, immutable storage
+# AWS S3
+terraform init -backend-config=backends/aws-s3.hcl
+```
 
-### 5. **Google Cloud Storage**
-- **File**: `gcs.tf`
-- **Use case**: GCP ecosystem integration
-- **Features**: Uniform bucket-level access, versioning
+## 📁 Fichiers de configuration disponibles
 
-### 6. **Local Storage**
-- **File**: `local.tf`
-- **Use case**: Development and testing only
-- **Features**: No external dependencies
+### Backend Configuration Files (.hcl)
+- **`ovh-backend.hcl`** - Configuration OVH Object Storage
+- **`terraform-cloud.hcl`** - Configuration Terraform Cloud
+- **`aws-s3.hcl`** - Configuration AWS S3
 
-## How to Switch Backends
+### Backend Examples (.tf)
+- **`ovh-object-storage.tf`** - Exemple complet OVH Object Storage
+- **`terraform-cloud.tf`** - Exemple Terraform Cloud
+- **`aws-s3.tf`** - Exemple AWS S3
+- **`azure-blob.tf`** - Exemple Azure Blob Storage
+- **`gcs.tf`** - Exemple Google Cloud Storage
+- **`local.tf`** - Exemple Local Storage
 
-1. **Copy the desired backend configuration** from this directory
-2. **Replace the backend block** in `../versions.tf`
-3. **Configure required environment variables**
-4. **Run `terraform init`** to migrate the state
+## 🎯 Available Backends
 
-## Environment Variables
+### 1. **Local Storage** (Default)
+- **File**: Backend par défaut dans `versions.tf`
+- **Use case**: Développement et testing uniquement
+- **Command**: `terraform init`
 
-Each backend requires specific environment variables. See individual backend files for details.
+### 2. **OVH Object Storage**
+- **File**: `ovh-backend.hcl`
+- **Use case**: Écosystème OVH, backup automatique
+- **Command**: `terraform init -backend-config=backends/ovh-backend.hcl`
 
-## Recommendations
+### 3. **Terraform Cloud** (HashiCorp Cloud)
+- **File**: `terraform-cloud.hcl`
+- **Use case**: Service géré avec collaboration
+- **Command**: `terraform init -backend-config=backends/terraform-cloud.hcl`
 
-- **Production**: Terraform Cloud or AWS S3 with DynamoDB
-- **Development**: Local backend
-- **Cost-effective**: Cloudflare R2 (current default)
-- **Cloud-specific**: Choose backend matching your primary cloud provider
+### 4. **AWS S3**
+- **File**: `aws-s3.hcl`
+- **Use case**: Écosystème AWS avec locking DynamoDB
+- **Command**: `terraform init -backend-config=backends/aws-s3.hcl`
+
+## 🔄 Migration entre backends
+
+Pour migrer d'un backend à un autre :
+
+1. **Backup actuel** (optionnel mais recommandé) :
+   ```bash
+   cp terraform.tfstate terraform.tfstate.backup
+   ```
+
+2. **Changer de backend** :
+   ```bash
+   terraform init -backend-config=backends/nouveau-backend.hcl
+   ```
+
+3. **Confirmer la migration** : Terraform vous proposera de migrer l'état existant
+
+## 🔧 Variables requises
+
+Ajoutez ces variables dans votre `terraform.tfvars` :
+
+### Pour OVH Object Storage
+```hcl
+ovh_access_key = "votre_access_key_s3"
+ovh_secret_key = "votre_secret_key_s3"
+```
+
+### Pour Terraform Cloud
+```hcl
+# Configurez via variable d'environnement :
+# export TF_TOKEN_app_terraform_io="votre_token"
+```
+
+### Pour AWS S3
+```hcl
+aws_access_key = "votre_access_key"
+aws_secret_key = "votre_secret_key"
+```
+
+## 🎯 Recommandations
+
+- **Développement**: Local backend (par défaut)
+- **Usage personnel**: OVH Object Storage (reste dans écosystème OVH)
+- **Équipe/Production**: Terraform Cloud (meilleures fonctionnalités collaboratives)
+- **Écosystème cloud**: Choisissez le backend correspondant à votre provider principal
