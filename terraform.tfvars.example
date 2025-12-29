@@ -2,3 +2,12 @@
 # Copy this file to terraform.tfvars and fill with your actual values
 
 cloudflare_api_token = "your_cloudflare_api_token_here"
+
+# OVH provider variables
+ovh_application_key = "your_ovh_application_key"
+ovh_application_secret = "your_ovh_application_secret"
+ovh_consumer_key = "your_ovh_consumer_key"
+ovh_endpoint = "ovh-eu"
+
+# Infomaniak provider variables
+infomaniak_token = "your_infomaniak_api_token"
