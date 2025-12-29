@@ -1,31 +1,20 @@
 name: DNS Infrastructure CI
 
-# CI is disabled by default - uncomment the triggers below after configuring secrets
-# on:
-#   pull_request:
-#     paths:
-#       - '**/*.tf'
-#   push:
-#     branches: [ main ]
-#     paths:
-#       - '**/*.tf'
-#   schedule:
-#     - cron: '17 3 * * *' # Daily drift check (plan only)
+# CI/CD Pipeline - Automatic triggers
+#on:
+#  pull_request:
+#    paths:
+#      - '**/*.tf'
+#  push:
+#    branches: [ main ]
+#    paths:
+#      - '**/*.tf'
+#  schedule:
+#    - cron: '17 3 * * *' # Daily drift check (plan only)
 
-# Manual trigger only until secrets are configured
+# Manual trigger for testing
 on:
-  workflow_dispatch:
-    inputs:
-      backend:
-        description: 'Backend to use'
-        required: false
-        default: 'local'
-        type: choice
-        options:
-        - local
-        - ovh-object-storage
-        - terraform-cloud
-        - aws-s3
+   workflow_dispatch:
 
 jobs:
   terraform:
@@ -70,28 +59,6 @@ jobs:
           terraform_version: 1.9.5
           terraform_wrapper: false
 
-      - name: Setup backend config
-        run: |
-          case "${{ github.event.inputs.backend || 'local' }}" in
-            "ovh-object-storage")
-              echo "Using OVH Object Storage backend"
-              BACKEND_CONFIG="-backend-config=backends/ovh-backend.hcl"
-              ;;
-            "terraform-cloud")
-              echo "Using Terraform Cloud backend"
-              BACKEND_CONFIG="-backend-config=backends/terraform-cloud.hcl"
-              ;;
-            "aws-s3")
-              echo "Using AWS S3 backend"
-              BACKEND_CONFIG="-backend-config=backends/aws-s3.hcl"
-              ;;
-            *)
-              echo "Using Local backend (default)"
-              BACKEND_CONFIG=""
-              ;;
-          esac
-          echo "BACKEND_CONFIG=$BACKEND_CONFIG" >> $GITHUB_ENV
-
       - name: Create terraform.tfvars
         run: |
           cat > terraform.tfvars << EOF
@@ -104,30 +71,17 @@ jobs:
           ovh_application_secret = "${{ secrets.OVH_APPLICATION_SECRET || '' }}"
           ovh_consumer_key = "${{ secrets.OVH_CONSUMER_KEY || '' }}"
           ovh_endpoint = "${{ secrets.OVH_ENDPOINT || 'ovh-eu' }}"
-          
-          # Backend Storage
-          ovh_access_key = "${{ secrets.OVH_ACCESS_KEY || '' }}"
-          ovh_secret_key = "${{ secrets.OVH_SECRET_KEY || '' }}"
-          aws_access_key = "${{ secrets.AWS_ACCESS_KEY_ID || '' }}"
-          aws_secret_key = "${{ secrets.AWS_SECRET_ACCESS_KEY || '' }}"
           EOF
 
       - name: Init
-        run: terraform init -upgrade ${{ env.BACKEND_CONFIG }}
+        run: terraform init -upgrade
 
       - name: Validate
         run: terraform validate
 
       - name: Plan (PR & drift)
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
-        run: terraform plan -out=tfplan
-
-      - name: Upload plan (PR)
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: tfplan
+        run: terraform plan
 
       - name: Apply (main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
