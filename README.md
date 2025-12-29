@@ -10,7 +10,7 @@ A Terraform template for managing DNS records across multiple domains using mult
 
 ## 🏗️ Architecture
 
-- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+), and Infomaniak DNS (v2.0+)
+- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+), and Infomaniak DNS (v1.3+)
 - **State Backend**: Cloudflare R2 Object Storage
 - **CI/CD**: GitHub Actions
 - **Structure**: Modular approach with separate zones
