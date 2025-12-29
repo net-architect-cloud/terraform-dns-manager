@@ -1,19 +1,22 @@
-# Terraform DNS Manager for Cloudflare - Template
+# Terraform DNS Manager - Multi-Provider Template
 
-[![CI Status](https://github.com/Net-Architect-Cloud/terraform-dns-manager-for-cloudflare/workflows/DNS%20Infrastructure%20CI/badge.svg)](https://github.com/Net-Architect-Cloud/terraform-dns-manager-for-cloudflare/actions)
-[![GitHub forks](https://img.shields.io/github/forks/Net-Architect-Cloud/terraform-dns-manager-for-cloudflare?style=flat&logo=github)](https://github.com/Net-Architect-Cloud/terraform-dns-manager-for-cloudflare/network/members)
+[![CI Status](https://github.com/Net-Architect-Cloud/terraform-dns-manager/workflows/DNS%20Infrastructure%20CI/badge.svg)](https://github.com/Net-Architect-Cloud/terraform-dns-manager/actions)
+[![GitHub forks](https://img.shields.io/github/forks/Net-Architect-Cloud/terraform-dns-manager?style=flat&logo=github)](https://github.com/Net-Architect-Cloud/terraform-dns-manager/network/members)
 [![Terraform](https://img.shields.io/badge/Terraform-1.7+-623CE4?style=flat&logo=terraform&logoColor=white)](https://www.terraform.io/)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-5.11+-F38020?style=flat&logo=cloudflare&logoColor=white)](https://registry.terraform.io/providers/cloudflare/cloudflare/latest)
+[![OVH](https://img.shields.io/badge/OVH-2.0+-0055A4?style=flat&logo=ovh&logoColor=white)](https://registry.terraform.io/providers/ovh/ovh/latest)
+[![Infomaniak](https://img.shields.io/badge/Infomaniak-1.3.6+-FF6600?style=flat&logo=infomaniak&logoColor=white)](https://registry.terraform.io/providers/Infomaniak/infomaniak/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Terraform template for managing DNS records across multiple domains using multiple DNS providers.
+A comprehensive Terraform template for managing DNS records across multiple domains using multiple DNS providers with flexible backend storage options.
 
 ## 🏗️ Architecture
 
-- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+), and Infomaniak DNS (v1.3+)
-- **State Backend**: Cloudflare R2 Object Storage
-- **CI/CD**: GitHub Actions
-- **Structure**: Modular approach with separate zones
+- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+), and Infomaniak DNS (v1.3.6)
+- **State Backend**: Multiple options - Local (default), Terraform Cloud, OVH Object Storage, AWS S3
+- **CI/CD**: GitHub Actions with dynamic backend selection
+- **Structure**: Modular approach with separate zones per provider
+- **Language**: All comments and documentation in English
 
 ## 📁 Project Structure
 
@@ -21,19 +24,17 @@ A Terraform template for managing DNS records across multiple domains using mult
 .
 ├── main.tf                    # Main configuration calling zone modules
 ├── versions.tf                # Terraform and provider version constraints
-├── providers.tf               # Cloudflare, OVH, and Infomaniak providers configuration
-├── zones/                     # DNS zones organized by domain
-│   ├── example.com/
-│   │   ├── records.tf         # DNS records for example.com
-│   │   └── versions.tf        # Zone-specific provider requirements
+├── providers.tf               # Multi-provider configuration with variables
+├── zones/                     # DNS zones organized by provider
+│   ├── example-cloudflare.com/
+│   │   └── records.tf         # DNS records for Cloudflare domain
 │   ├── example-ovh.com/
-│   │   ├── records.tf         # DNS records for OVH domain
-│   │   └── versions.tf        # Zone-specific provider requirements
+│   │   └── records.tf         # DNS records for OVH domain
 │   └── example-infomaniak.com/
-│       ├── records.tf         # DNS records for Infomaniak domain
-│       └── versions.tf        # Zone-specific provider requirements
-└── .github/workflows/
-    └── terraform.yml         # CI/CD pipeline
+│       └── records.tf         # DNS records for Infomaniak domain
+├── .github/workflows/
+│   └── terraform.yml         # CI/CD pipeline with backend selection
+└── .env.example              # Environment variables template
 ```
 
 ## 🚀 Getting Started
@@ -51,7 +52,7 @@ A Terraform template for managing DNS records across multiple domains using mult
 1. **Clone the repository**
    ```bash
    git clone <your-repository-url>
-   cd dns-infrastructure
+   cd terraform-dns-manager
    ```
 
 2. **Configure environment variables**
@@ -75,14 +76,14 @@ A Terraform template for managing DNS records across multiple domains using mult
    export INFOMANIAK_TOKEN="your_infomaniak_api_token"
    
    # Backend storage (optional, required for non-local backends)
-   export AWS_ACCESS_KEY_ID="your_r2_access_key"
-   export AWS_SECRET_ACCESS_KEY="your_r2_secret_key"
-   export AWS_EC2_METADATA_DISABLED=true
+   export AWS_ACCESS_KEY_ID="your_storage_access_key"
+   export AWS_SECRET_ACCESS_KEY="your_storage_secret_key"
+   export TF_TOKEN_app_terraform_io="your_terraform_cloud_token"
    ```
 
 4. **Update configuration**
-   - Modify `zones/example.com/` to match your domain
-   - For production, consider switching to a remote backend (see backends/README.md)
+   - Modify zone directories under `zones/` to match your domains
+   - For production, consider switching to a remote backend
 
 5. **Initialize Terraform**
    ```bash
@@ -133,33 +134,65 @@ To use Infomaniak as DNS provider, you need to create an API token:
 
 ### State Backend Configuration
 
-The Terraform state is stored using various backend options. The default is local storage for development, but multiple backends are supported:
+The Terraform state is stored using various backend options. The default is local storage for development, but multiple backends are available directly in `versions.tf`:
 
 #### Available Backends
 
 1. **Local Storage** (Default) - Development and testing only
-2. **Cloudflare R2** - Cost-effective, S3-compatible storage
-3. **Terraform Cloud** (HashiCorp Cloud) - Managed service with collaboration features
-4. **AWS S3** - AWS ecosystem integration with DynamoDB locking
-5. **Azure Blob Storage** - Azure ecosystem integration
-6. **Google Cloud Storage** - GCP ecosystem integration
+2. **Terraform Cloud** (HashiCorp Cloud) - Managed service with collaboration features
+3. **Cloudflare R2** - Cost-effective, S3-compatible storage with Cloudflare ecosystem
+4. **OVH Object Storage** - OVH ecosystem integration
+5. **AWS S3** - AWS ecosystem integration with DynamoDB locking
+6. **Azure Blob Storage** - Azure ecosystem integration
+7. **Google Cloud Storage** - GCP ecosystem integration
 
 #### Switching Backends
 
-1. Choose a backend configuration from `./backends/` directory
-2. Replace the backend block in `versions.tf`
-3. Configure required environment variables
-4. Run `terraform init` to migrate the state
+To switch backends, edit `versions.tf` and:
 
-#### Default Local Backend Configuration
+1. **Comment the default backend**:
+   ```hcl
+   # backend "local" {
+   #   path = "./terraform.tfstate"
+   # }
+   ```
 
-```hcl
-backend "local" {
-  path = "./terraform.tfstate"
-}
-```
+2. **Uncomment your desired backend**:
+   ```hcl
+   # Example for Cloudflare R2
+   backend "s3" {
+     bucket = "terraform-state"
+     key    = "terraform.tfstate"
+     region = "auto"
+     endpoint = "https://<account-id>.r2.cloudflarestorage.com"
+     skip_credentials_validation = true
+     skip_region_validation      = true
+     skip_requesting_account_id  = true
+     skip_metadata_api_check     = true
+   }
+   ```
 
-For detailed backend documentation, see `./backends/README.md`
+3. **Configure required environment variables**
+4. **Run `terraform init`** to migrate the state
+
+#### Backend-Specific Configuration
+
+**Cloudflare R2:**
+- Required variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- Replace `<account-id>` with your Cloudflare account ID
+- Create R2 bucket in Cloudflare Dashboard first
+
+**Terraform Cloud:**
+- Required variables: `TF_TOKEN_app_terraform_io`
+- Update `organization` and `workspaces.name` values
+
+**OVH Object Storage:**
+- Required variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- Uses OVH S3-compatible endpoint
+
+**AWS S3:**
+- Required variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- Supports DynamoDB locking for state consistency
 
 ## 🏃‍♂️ CI/CD Pipeline
 
@@ -167,7 +200,8 @@ The GitHub Actions workflow (`.github/workflows/terraform.yml`) automatically:
 
 - **On Pull Requests**: Runs `terraform plan` and uploads the plan as an artifact
 - **On Main Branch**: Runs `terraform apply` to deploy changes
-- **Daily**: Runs drift detection to check for manual changes
+- **Multi-Provider Support**: Works with Cloudflare, OVH, and Infomaniak
+- **Backend Configuration**: Uses backend configured in `versions.tf`
 
 ### Required GitHub Secrets
 
@@ -175,8 +209,6 @@ Configure these secrets in your GitHub repository:
 
 **Cloudflare (optional)**:
 - `CLOUDFLARE_API_TOKEN`: Your Cloudflare API token
-- `R2_ACCESS_KEY_ID`: Cloudflare R2 access key (for R2 backend)
-- `R2_SECRET_ACCESS_KEY`: Cloudflare R2 secret key (for R2 backend)
 
 **OVH (optional)**:
 - `OVH_APPLICATION_KEY`: Your OVH application key
@@ -188,8 +220,8 @@ Configure these secrets in your GitHub repository:
 
 **Backend Storage (optional)**:
 - `TF_TOKEN_app_terraform_io`: Terraform Cloud API token
-- `AWS_ACCESS_KEY_ID`: AWS S3 access key
-- `AWS_SECRET_ACCESS_KEY`: AWS S3 secret key
+- `AWS_ACCESS_KEY_ID`: Storage access key (R2, S3, OVH)
+- `AWS_SECRET_ACCESS_KEY`: Storage secret key (R2, S3, OVH)
 - `ARM_CLIENT_ID`: Azure service principal client ID
 - `ARM_CLIENT_SECRET`: Azure service principal client secret
 - `ARM_SUBSCRIPTION_ID`: Azure subscription ID
@@ -201,7 +233,7 @@ Configure these secrets in your GitHub repository:
 The CI/CD pipeline is disabled by default to prevent failures. To enable it:
 
 1. Configure all required GitHub secrets (see above)
-2. Update your configuration files (zones, backend, etc.)
+2. Update your configuration files (zones, backend in `versions.tf`, etc.)
 3. Edit `.github/workflows/terraform.yml`:
    - Uncomment the `on:` triggers section
    - Remove or comment the `workflow_dispatch:` trigger
@@ -262,59 +294,76 @@ resource "cloudflare_dns_record" "example_cname" {
 **Infomaniak Records:**
 ```hcl
 # A Record (subdomain)
-resource "infomaniak_domain_record" "example_a" {
-  domain_id = data.infomaniak_domain.this.id
-  type      = "A"
-  name      = "subdomain"
-  value     = "192.168.1.1"
-  ttl       = 3600
+resource "infomaniak_record" "example_a" {
+  zone_fqdn = "example-infomaniak.com"
+  type        = "A"
+  source      = "192.168.1.1"
+  ttl         = 3600
 }
 
 # CNAME Record (subdomain)
-resource "infomaniak_domain_record" "example_cname" {
-  domain_id = data.infomaniak_domain.this.id
-  type      = "CNAME"
-  name      = "www"
-  value     = "example.com."
-  ttl       = 3600
+resource "infomaniak_record" "example_cname" {
+  zone_fqdn = "example-infomaniak.com"
+  type        = "CNAME"
+  source      = "www"
+  target      = "example.com."
+  ttl         = 3600
 }
 
 # MX Record
-resource "infomaniak_domain_record" "example_mx" {
-  domain_id = data.infomaniak_domain.this.id
-  type      = "MX"
-  name      = "@"
-  value     = "mail.example.com."
-  priority  = 10
-  ttl       = 3600
+resource "infomaniak_record" "example_mx" {
+  zone_fqdn = "example-infomaniak.com"
+  type        = "MX"
+  source      = "@"
+  data = {
+    priority = 10
+    target   = "mail.example.com."
+  }
+  ttl         = 3600
 }
 
 # CAA Record
-resource "infomaniak_domain_record" "example_caa" {
-  domain_id = data.infomaniak_domain.this.id
-  type      = "CAA"
-  name      = "@"
-  value     = "0 issue \"letsencrypt.org\""
-  ttl       = 3600
+resource "infomaniak_record" "example_caa" {
+  zone_fqdn = "example-infomaniak.com"
+  type        = "CAA"
+  source      = "0 issue \"letsencrypt.org\""
+  ttl         = 3600
+}
+
+# SRV Record (using data field)
+resource "infomaniak_record" "example_srv" {
+  zone_fqdn = "example-infomaniak.com"
+  type        = "SRV"
+  source      = "_service._tcp"
+  data = {
+    priority = 10
+    weight   = 5
+    port     = 443
+    target   = "target.example.com."
+  }
+  ttl         = 3600
 }
 ```
 
 ## 🔒 Security Best Practices
 
 - API tokens are stored as GitHub secrets
-- State file is encrypted in R2
+- State file is encrypted in cloud storage backends
 - No sensitive data in repository
 - Regular security updates via Dependabot
+- Use least privilege principle for API tokens
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
 1. **Provider version conflicts**: Run `terraform init -upgrade`
-2. **State lock issues**: Check R2 bucket permissions
+2. **State lock issues**: Check backend storage permissions
 3. **API rate limits**: Wait and retry, or check token permissions
-4. **OVH zone refresh**: OVH requires manual zone refresh after changes
-5. **Infomaniak domain ID**: Ensure you have the correct domain ID from Infomaniak
+4. **OVH zone refresh**: OVH applies changes automatically
+5. **Infomaniak record syntax**: Use `source` field for simple records, `data` field for complex ones
+6. **Backend switching**: Edit `versions.tf` to change backend, then run `terraform init`
+7. **Cloudflare R2 configuration**: Ensure correct account ID and R2 bucket exists
 
 ### Useful Commands
 
@@ -329,14 +378,38 @@ terraform import module.zone_name.cloudflare_dns_record.record_name zone_id/reco
 terraform import module.zone_name.ovh_domain_zone_record.record_name zone_name/record_id
 
 # Import existing DNS record (Infomaniak)
-terraform import module.zone_name.infomaniak_domain_record.record_name domain_id/record_id
+terraform import module.zone_name.infomaniak_record.record_name zone_fqdn/record_id
 
 # Refresh state
 terraform refresh
 
 # Validate configuration
 terraform validate
+
+# Switch backends (edit versions.tf first)
+terraform init
+
+# Format code
+terraform fmt
 ```
+
+### Provider-Specific Notes
+
+**Cloudflare:**
+- Supports proxying with `proxied = true`
+- Uses `zone_id` from data source
+- TTL of 1 enables automatic TTL optimization
+
+**OVH:**
+- Changes are applied automatically (no manual refresh needed)
+- Uses `zone` name and `fieldtype` for records
+- Supports all standard DNS record types
+
+**Infomaniak:**
+- Uses `zone_fqdn` instead of zone ID
+- Requires `source` field for all records
+- Use `data` field for complex records (MX, SRV, SSHFP)
+- Use `target` field for CNAME and similar records
 
 ## 📚 Documentation
 

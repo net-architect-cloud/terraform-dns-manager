@@ -17,15 +17,66 @@ terraform {
   }
 
   # Backend Configuration - Local Storage (Default)
-  # To use another backend, use: terraform init -backend-config=backends/<name>.hcl
+  # Uncomment the backend you want to use and comment the others
+
+  # 1. Local Storage (Default - Development)
   backend "local" {
     path = "./terraform.tfstate"
   }
 
-  # Alternative Backends (use with -backend-config) :
-  # terraform init -backend-config=backends/ovh-backend.hcl      # OVH Object Storage
-  # terraform init -backend-config=backends/terraform-cloud.hcl   # Terraform Cloud
-  # terraform init -backend-config=backends/aws-s3.hcl           # AWS S3
-  # terraform init -backend-config=backends/azure-blob.hcl       # Azure Blob Storage
-  # terraform init -backend-config=backends/gcs.hcl              # Google Cloud Storage
+  # 2. Terraform Cloud (Production/Team)
+  # backend "remote" {
+  #   hostname = "app.terraform.io"
+  #   organization = "your-organization"
+  #   workspaces {
+  #     name = "dns-manager"
+  #   }
+  # }
+
+  # 3. Cloudflare R2 (Cloudflare Ecosystem)
+  # backend "s3" {
+  #   bucket = "terraform-state"
+  #   key    = "terraform.tfstate"
+  #   region = "auto"
+  #   endpoint = "https://<account-id>.r2.cloudflarestorage.com"
+  #   skip_credentials_validation = true
+  #   skip_region_validation      = true
+  #   skip_requesting_account_id  = true
+  #   skip_metadata_api_check     = true
+  # }
+
+  # 4. OVH Object Storage (OVH Ecosystem)
+  # backend "s3" {
+  #   bucket = "terraform-state"
+  #   key    = "terraform.tfstate"
+  #   region = "GRA"
+  #   endpoint = "s3.gra.io.cloud.ovh.us"
+  #   skip_credentials_validation = true
+  #   skip_region_validation      = true
+  #   skip_requesting_account_id  = true
+  #   skip_metadata_api_check     = true
+  # }
+
+  # 5. AWS S3 (AWS Ecosystem)
+  # backend "s3" {
+  #   bucket         = "your-bucket"
+  #   key            = "terraform.tfstate"
+  #   region         = "your-region"
+  #   encrypt        = true
+  #   dynamodb_table = "terraform-locks"
+  # }
+
+  # 6. Azure Blob Storage
+  # backend "azurerm" {
+  #   resource_group_name  = "terraform-rg"
+  #   storage_account_name = "terraformstate"
+  #   container_name       = "tfstate"
+  #   key                  = "terraform.tfstate"
+  # }
+
+  # 7. Google Cloud Storage
+  # backend "gcs" {
+  #   bucket = "your-bucket"
+  #   prefix = "terraform.tfstate"
+  # }
 }
