@@ -17,12 +17,12 @@ terraform {
   }
 
   # Backend Configuration - Local Storage (Default)
-  # Pour utiliser un autre backend, utilisez : terraform init -backend-config=backends/<nom>.hcl
+  # To use another backend, use: terraform init -backend-config=backends/<name>.hcl
   backend "local" {
     path = "./terraform.tfstate"
   }
 
-  # Alternative Backends (utiliser avec -backend-config) :
+  # Alternative Backends (use with -backend-config) :
   # terraform init -backend-config=backends/ovh-backend.hcl      # OVH Object Storage
   # terraform init -backend-config=backends/terraform-cloud.hcl   # Terraform Cloud
   # terraform init -backend-config=backends/aws-s3.hcl           # AWS S3

@@ -6,11 +6,11 @@
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-5.11+-F38020?style=flat&logo=cloudflare&logoColor=white)](https://registry.terraform.io/providers/cloudflare/cloudflare/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Terraform template for managing DNS records across multiple domains using Cloudflare as the DNS provider.
+A Terraform template for managing DNS records across multiple domains using multiple DNS providers.
 
 ## 🏗️ Architecture
 
-- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+) & Infomaniak DNS (v2.0+)
+- **Providers**: Cloudflare DNS (v5.11+), OVH DNS (v2.0+), and Infomaniak DNS (v2.0+)
 - **State Backend**: Cloudflare R2 Object Storage
 - **CI/CD**: GitHub Actions
 - **Structure**: Modular approach with separate zones
@@ -21,7 +21,7 @@ A Terraform template for managing DNS records across multiple domains using Clou
 .
 ├── main.tf                    # Main configuration calling zone modules
 ├── versions.tf                # Terraform and provider version constraints
-├── providers.tf               # Cloudflare, OVH & Infomaniak providers configuration
+├── providers.tf               # Cloudflare, OVH, and Infomaniak providers configuration
 ├── zones/                     # DNS zones organized by domain
 │   ├── example.com/
 │   │   ├── records.tf         # DNS records for example.com

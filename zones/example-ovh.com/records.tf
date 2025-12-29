@@ -43,7 +43,7 @@ resource "ovh_domain_zone_record" "api" {
 resource "ovh_domain_zone_record" "mx" {
   zone      = data.ovh_domain_zone.this.name
   fieldtype = "MX"
-  target    = "mail.example-ovh.com."  # Replace with your mail server
+  target    = "10 mail.example-ovh.com."  # Replace with your mail server
   ttl       = 3600
 }
 
@@ -82,17 +82,4 @@ resource "ovh_domain_zone_record" "srv" {
   ttl       = 3600
 }
 
-# Refresh the zone after changes
-resource "ovh_domain_zone_refresh" "this" {
-  zone      = data.ovh_domain_zone.this.name
-  depends_on = [
-    ovh_domain_zone_record.apex,
-    ovh_domain_zone_record.www,
-    ovh_domain_zone_record.api,
-    ovh_domain_zone_record.mx,
-    ovh_domain_zone_record.spf,
-    ovh_domain_zone_record.dmarc,
-    ovh_domain_zone_record.ipv6,
-    ovh_domain_zone_record.srv
-  ]
-}
+# Note: OVH provider does not have a "refresh" resource - changes are applied automatically
